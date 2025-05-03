@@ -1,37 +1,33 @@
 import streamlit as st
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
+import plotly.express as px
 
 # Load dataset
 df = pd.read_csv("light_spotify_dataset.csv")
 df['Release Date'] = pd.to_datetime(df['Release Date'], errors='coerce')
 df['Year'] = df['Release Date'].dt.year
 
-# Set Streamlit page title
+# App title and description
 st.title("Spotify Music Dataset Explorer")
 
-# App description
 st.write(
     "This app lets you explore a Spotify music dataset by filtering songs based on emotion and explicit content. "
-    "It includes visualizations to show how features like popularity, danceability, and emotion relate to each other. "
-    "Use the sidebar filters to customize your view and discover interesting patterns in the music."
+    "Use the sidebar to filter the data and view interactive charts that show trends and comparisons in song popularity."
 )
 
-# Sidebar: Emotion filter
+# Sidebar filters
 emotion_filter = st.sidebar.multiselect(
     "Filter by Emotion",
     options=df['emotion'].unique(),
     default=df['emotion'].unique()
 )
 
-# Sidebar: Explicit content filter
 explicit_filter = st.sidebar.selectbox(
     "Explicit content",
     options=["All", "Yes", "No"]
 )
 
-# Filter the data
+# Filter data
 filtered_df = df[df['emotion'].isin(emotion_filter)]
 if explicit_filter != "All":
     filtered_df = filtered_df[filtered_df['Explicit'] == explicit_filter]
@@ -40,37 +36,51 @@ if explicit_filter != "All":
 st.subheader("Filtered Data Sample")
 st.dataframe(filtered_df.head())
 
-# Plot: Popularity Distribution
+# Chart: Popularity Distribution
 st.subheader("Popularity Distribution")
-fig1, ax1 = plt.subplots()
-sns.histplot(filtered_df['Popularity'], kde=True, bins=30, color='skyblue', ax=ax1)
-ax1.set_title("Popularity Distribution")
-st.pyplot(fig1)
+fig1 = px.histogram(
+    filtered_df,
+    x="Popularity",
+    nbins=30,
+    title="Popularity Distribution",
+    color_discrete_sequence=["skyblue"]
+)
+fig1.update_layout(bargap=0.1)
+st.plotly_chart(fig1)
 
-# Plot: Danceability vs Popularity
+# Chart: Danceability vs Popularity
 st.subheader("Danceability vs Popularity")
-fig2, ax2 = plt.subplots()
-sns.scatterplot(data=filtered_df, x='Danceability', y='Popularity', alpha=0.6, ax=ax2)
-ax2.set_title("Danceability vs Popularity")
-st.pyplot(fig2)
+fig2 = px.scatter(
+    filtered_df,
+    x="Danceability",
+    y="Popularity",
+    color="emotion",
+    hover_data=["song", "artist"],
+    title="Danceability vs Popularity"
+)
+st.plotly_chart(fig2)
 
-# Plot: Popularity by Emotion
+# Chart: Popularity by Emotion (Boxplot)
 st.subheader("Popularity by Emotion")
-fig3, ax3 = plt.subplots(figsize=(10, 5))
-sns.boxplot(data=filtered_df, x='emotion', y='Popularity', palette='pastel', ax=ax3)
-ax3.set_title("Popularity by Emotion", fontsize=16)
-ax3.set_xlabel("Emotion", fontsize=12)
-ax3.set_ylabel("Popularity", fontsize=12)
-ax3.tick_params(axis='x', rotation=30)
-ax3.grid(True, linestyle='--', alpha=0.5)
-st.pyplot(fig3)
+fig3 = px.box(
+    filtered_df,
+    x="emotion",
+    y="Popularity",
+    color="emotion",
+    title="Popularity by Emotion",
+    points="all"  # show individual points
+)
+fig3.update_layout(xaxis_title="Emotion", yaxis_title="Popularity", showlegend=False)
+st.plotly_chart(fig3)
 
-# Plot: Popularity Over Time
+# Chart: Popularity Over Time
 st.subheader("Popularity Over Time")
-fig4, ax4 = plt.subplots(figsize=(10, 4))
-sns.lineplot(data=filtered_df.sort_values('Year'), x='Year', y='Popularity', marker='o', ax=ax4, color='green')
-ax4.set_title("Popularity Over Time", fontsize=16)
-ax4.set_xlabel("Year", fontsize=12)
-ax4.set_ylabel("Popularity", fontsize=12)
-ax4.grid(True, linestyle='--', alpha=0.5)
-st.pyplot(fig4)
+fig4 = px.line(
+    filtered_df.groupby("Year")["Popularity"].mean().reset_index(),
+    x="Year",
+    y="Popularity",
+    title="Average Popularity Over Time",
+    markers=True
+)
+fig4.update_traces(line=dict(color="green"))
+st.plotly_chart(fig4)
