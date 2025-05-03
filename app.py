@@ -1,0 +1,56 @@
+
+import streamlit as st
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Load dataset
+df = pd.read_csv("light_spotify_dataset.csv")
+df['Release Date'] = pd.to_datetime(df['Release Date'], errors='coerce')
+df['Year'] = df['Release Date'].dt.year
+
+st.title("Spotify Music Dataset Explorer")
+
+# Sidebar filter: Emotion
+emotion_filter = st.sidebar.multiselect("Filter by Emotion", options=df['emotion'].unique(), default=df['emotion'].unique())
+
+# Sidebar filter: Explicit
+explicit_filter = st.sidebar.selectbox("Explicit content", options=["All", "Yes", "No"])
+
+# Filter data
+filtered_df = df[df['emotion'].isin(emotion_filter)]
+if explicit_filter != "All":
+    filtered_df = filtered_df[filtered_df['Explicit'] == explicit_filter]
+
+# Show data
+st.subheader("Filtered Data Sample")
+st.dataframe(filtered_df.head())
+
+# Popularity Distribution
+st.subheader("Popularity Distribution")
+fig1, ax1 = plt.subplots()
+sns.histplot(filtered_df['Popularity'], kde=True, bins=30, color='skyblue', ax=ax1)
+ax1.set_title("Popularity Distribution")
+st.pyplot(fig1)
+
+# Danceability vs Popularity
+st.subheader("Danceability vs Popularity")
+fig2, ax2 = plt.subplots()
+sns.scatterplot(data=filtered_df, x='Danceability', y='Popularity', alpha=0.6, ax=ax2)
+ax2.set_title("Danceability vs Popularity")
+st.pyplot(fig2)
+
+# Popularity by Emotion
+st.subheader("Popularity by Emotion")
+fig3, ax3 = plt.subplots()
+sns.boxplot(data=filtered_df, x='emotion', y='Popularity', palette='Set3', ax=ax3)
+ax3.set_title("Popularity by Emotion")
+plt.xticks(rotation=30)
+st.pyplot(fig3)
+
+# Popularity Over Time
+st.subheader("Popularity Over Time")
+fig4, ax4 = plt.subplots()
+sns.lineplot(data=filtered_df, x='Year', y='Popularity', marker='o', ax=ax4)
+ax4.set_title("Popularity Over Time")
+st.pyplot(fig4)
