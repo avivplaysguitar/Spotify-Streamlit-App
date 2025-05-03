@@ -11,6 +11,12 @@ df['Year'] = df['Release Date'].dt.year
 
 st.title("Spotify Music Dataset Explorer")
 
+st.write(
+    "This app lets you explore a Spotify music dataset by filtering songs based on emotion and explicit content. "
+    "It includes visualizations to show how features like popularity, danceability, and emotion relate to each other. "
+    "Use the sidebar filters to customize your view and discover interesting patterns in the music."
+)
+
 # Sidebar filter: Emotion
 emotion_filter = st.sidebar.multiselect("Filter by Emotion", options=df['emotion'].unique(), default=df['emotion'].unique())
 
