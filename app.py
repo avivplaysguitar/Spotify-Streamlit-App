@@ -12,7 +12,7 @@ st.title("Spotify Music Dataset Explorer")
 
 st.write(
     "This app lets you explore a Spotify music dataset by filtering songs based on emotion and explicit content. "
-    "Use the sidebar to customize your view and discover trends in popularity, emotion, and danceability."
+    "It also includes a simulated view of Spotify's user growth over time."
 )
 
 # Sidebar filters
@@ -77,39 +77,38 @@ fig3.update_layout(
 )
 st.plotly_chart(fig3)
 
-# Popularity Over Time (stock-style with range slider)
-st.subheader("Popularity Over Time")
-pop_by_year = (
-    filtered_df.dropna(subset=["Year"])
-    .groupby("Year")["Popularity"]
-    .mean()
-    .reset_index()
-    .sort_values("Year")
-)
+# Simulated Spotify User Growth
+st.subheader("Spotify Global Users Over Time (Simulated)")
 
-if not pop_by_year.empty:
-    fig4 = px.line(
-        pop_by_year,
-        x="Year",
-        y="Popularity",
-        title="Average Popularity Over Time (Stock Chart Style)",
-        markers=True
+# Fake data (realistic estimate from historical public numbers)
+user_data = pd.DataFrame({
+    "Year": list(range(2010, 2025)),
+    "Spotify_Users_Millions": [
+        0, 10, 15, 24, 38, 60, 89, 140, 180, 232,
+        286, 345, 406, 456, 515
+    ]
+})
+
+fig4 = px.line(
+    user_data,
+    x="Year",
+    y="Spotify_Users_Millions",
+    title="Spotify Global User Growth Over Time",
+    markers=True
+)
+fig4.update_layout(
+    xaxis_title="Year",
+    yaxis_title="Users (Millions)",
+    xaxis=dict(
+        rangeselector=dict(
+            buttons=list([
+                dict(count=5, label="5y", step="year", stepmode="backward"),
+                dict(count=10, label="10y", step="year", stepmode="backward"),
+                dict(step="all", label="All")
+            ])
+        ),
+        rangeslider=dict(visible=True),
+        type="linear"
     )
-    fig4.update_layout(
-        xaxis_title="Year",
-        yaxis_title="Avg Popularity",
-        xaxis=dict(
-            rangeselector=dict(
-                buttons=list([
-                    dict(count=5, label="5y", step="year", stepmode="backward"),
-                    dict(count=10, label="10y", step="year", stepmode="backward"),
-                    dict(step="all", label="All")
-                ])
-            ),
-            rangeslider=dict(visible=True),
-            type="linear"
-        )
-    )
-    st.plotly_chart(fig4)
-else:
-    st.info("No popularity data available for the selected filters.")
+)
+st.plotly_chart(fig4)
