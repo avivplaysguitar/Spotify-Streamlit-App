@@ -77,15 +77,30 @@ fig3.update_layout(
 )
 st.plotly_chart(fig3)
 
-# Popularity Over Time
+# Popularity Over Time (smoothed and sorted)
 st.subheader("Popularity Over Time")
-pop_by_year = filtered_df.groupby("Year")["Popularity"].mean().reset_index()
-fig4 = px.line(
-    pop_by_year,
-    x="Year",
-    y="Popularity",
-    markers=True,
-    title="Average Popularity Over Time"
+pop_by_year = (
+    filtered_df.dropna(subset=["Year"])
+    .groupby("Year")["Popularity"]
+    .mean()
+    .reset_index()
+    .sort_values("Year")
 )
-fig4.update_traces(line=dict(color="green"))
-st.plotly_chart(fig4)
+
+if not pop_by_year.empty:
+    fig4 = px.line(
+        pop_by_year,
+        x="Year",
+        y="Popularity",
+        markers=True,
+        title="Average Popularity Over Time"
+    )
+    fig4.update_traces(line=dict(color="green"))
+    fig4.update_layout(
+        xaxis_title="Year",
+        yaxis_title="Average Popularity",
+        hovermode="x unified"
+    )
+    st.plotly_chart(fig4)
+else:
+    st.write("No data available for the selected filters.")
