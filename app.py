@@ -12,14 +12,14 @@ st.title("Spotify Music Dataset Explorer")
 
 st.write(
     "This app lets you explore a Spotify music dataset by filtering songs based on emotion and explicit content. "
-    "Use the sidebar to filter the data and view interactive charts that show trends and comparisons in song popularity."
+    "Use the sidebar to customize your view and discover trends in popularity, emotion, and danceability."
 )
 
 # Sidebar filters
 emotion_filter = st.sidebar.multiselect(
     "Filter by Emotion",
-    options=df['emotion'].unique(),
-    default=df['emotion'].unique()
+    options=df['emotion'].dropna().unique(),
+    default=df['emotion'].dropna().unique()
 )
 
 explicit_filter = st.sidebar.selectbox(
@@ -27,7 +27,7 @@ explicit_filter = st.sidebar.selectbox(
     options=["All", "Yes", "No"]
 )
 
-# Filter data
+# Apply filters
 filtered_df = df[df['emotion'].isin(emotion_filter)]
 if explicit_filter != "All":
     filtered_df = filtered_df[filtered_df['Explicit'] == explicit_filter]
@@ -36,19 +36,19 @@ if explicit_filter != "All":
 st.subheader("Filtered Data Sample")
 st.dataframe(filtered_df.head())
 
-# Chart: Popularity Distribution
+# Popularity Distribution
 st.subheader("Popularity Distribution")
 fig1 = px.histogram(
     filtered_df,
     x="Popularity",
     nbins=30,
-    title="Popularity Distribution",
+    title="Distribution of Song Popularity",
     color_discrete_sequence=["skyblue"]
 )
 fig1.update_layout(bargap=0.1)
 st.plotly_chart(fig1)
 
-# Chart: Danceability vs Popularity
+# Danceability vs Popularity
 st.subheader("Danceability vs Popularity")
 fig2 = px.scatter(
     filtered_df,
@@ -60,7 +60,7 @@ fig2 = px.scatter(
 )
 st.plotly_chart(fig2)
 
-# Chart: Popularity by Emotion (Boxplot)
+# Popularity by Emotion
 st.subheader("Popularity by Emotion")
 fig3 = px.box(
     filtered_df,
@@ -68,19 +68,24 @@ fig3 = px.box(
     y="Popularity",
     color="emotion",
     title="Popularity by Emotion",
-    points="all"  # show individual points
+    points="all"
 )
-fig3.update_layout(xaxis_title="Emotion", yaxis_title="Popularity", showlegend=False)
+fig3.update_layout(
+    xaxis_title="Emotion",
+    yaxis_title="Popularity",
+    showlegend=False
+)
 st.plotly_chart(fig3)
 
-# Chart: Popularity Over Time
+# Popularity Over Time
 st.subheader("Popularity Over Time")
+pop_by_year = filtered_df.groupby("Year")["Popularity"].mean().reset_index()
 fig4 = px.line(
-    filtered_df.groupby("Year")["Popularity"].mean().reset_index(),
+    pop_by_year,
     x="Year",
     y="Popularity",
-    title="Average Popularity Over Time",
-    markers=True
+    markers=True,
+    title="Average Popularity Over Time"
 )
 fig4.update_traces(line=dict(color="green"))
 st.plotly_chart(fig4)
