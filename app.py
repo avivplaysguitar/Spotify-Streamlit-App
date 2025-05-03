@@ -77,7 +77,7 @@ fig3.update_layout(
 )
 st.plotly_chart(fig3)
 
-# Popularity Over Time (smoothed and sorted)
+# Popularity Over Time (stock-style with range slider)
 st.subheader("Popularity Over Time")
 pop_by_year = (
     filtered_df.dropna(subset=["Year"])
@@ -92,15 +92,24 @@ if not pop_by_year.empty:
         pop_by_year,
         x="Year",
         y="Popularity",
-        markers=True,
-        title="Average Popularity Over Time"
+        title="Average Popularity Over Time (Stock Chart Style)",
+        markers=True
     )
-    fig4.update_traces(line=dict(color="green"))
     fig4.update_layout(
         xaxis_title="Year",
-        yaxis_title="Average Popularity",
-        hovermode="x unified"
+        yaxis_title="Avg Popularity",
+        xaxis=dict(
+            rangeselector=dict(
+                buttons=list([
+                    dict(count=5, label="5y", step="year", stepmode="backward"),
+                    dict(count=10, label="10y", step="year", stepmode="backward"),
+                    dict(step="all", label="All")
+                ])
+            ),
+            rangeslider=dict(visible=True),
+            type="linear"
+        )
     )
     st.plotly_chart(fig4)
 else:
-    st.write("No data available for the selected filters.")
+    st.info("No popularity data available for the selected filters.")
